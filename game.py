@@ -83,15 +83,15 @@ def check_winner(board):
     return -1
 
 
-SQUARESIZE = 100
+SQUARE_SIZE = 100
 BLUE = (0, 204, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 WHITE = (255, 255, 255)
-HEIGHT = ROWS * SQUARESIZE + 100
-WIDTH = COLUMNS * SQUARESIZE
-RADIUS = int(SQUARESIZE / 2) - 10
+HEIGHT = ROWS * SQUARE_SIZE + 100
+WIDTH = COLUMNS * SQUARE_SIZE
+RADIUS = int(SQUARE_SIZE / 2) - 10
 
 
 def draw_board(screen, board):
@@ -99,23 +99,19 @@ def draw_board(screen, board):
 
     for i in range(0, ROWS):
         for j in range(0, COLUMNS):
-            pos = (int(j * SQUARESIZE + SQUARESIZE / 2), SQUARESIZE + int(i * SQUARESIZE + SQUARESIZE / 2))
+            pos = (int(j * SQUARE_SIZE + SQUARE_SIZE / 2), SQUARE_SIZE + int(i * SQUARE_SIZE + SQUARE_SIZE / 2))
             pygame.draw.circle(screen, WHITE, pos, RADIUS)
 
     for i in range(ROWS):
         for j in range(COLUMNS):
             if board[i][j] == 1:
-                pos = (int(j * SQUARESIZE + SQUARESIZE / 2), SQUARESIZE + int(i * SQUARESIZE + SQUARESIZE / 2))
+                pos = (int(j * SQUARE_SIZE + SQUARE_SIZE / 2), SQUARE_SIZE + int(i * SQUARE_SIZE + SQUARE_SIZE / 2))
                 pygame.draw.circle(screen, RED, pos, RADIUS)
             elif board[i][j] == 2:
-                pos = (int(j * SQUARESIZE + SQUARESIZE / 2), SQUARESIZE + int(i * SQUARESIZE + SQUARESIZE / 2))
+                pos = (int(j * SQUARE_SIZE + SQUARE_SIZE / 2), SQUARE_SIZE + int(i * SQUARE_SIZE + SQUARE_SIZE / 2))
                 pygame.draw.circle(screen, YELLOW, pos, RADIUS)
     pygame.display.update()
 
-
-pygame.init()
-size = (WIDTH, HEIGHT)
-screen = pygame.display.set_mode(size)
 
 game_over = False
 turn = 1
@@ -193,8 +189,8 @@ def minimax(board, depth, maximing: bool):
         return None, 100
     if winner == PLAYER_PIECE:
         return None, -100
-    if depth == 0 :
-        return None,evaluate_board(board)
+    if depth == 0:
+        return None, evaluate_board(board)
 
     if maximing:
         score = -500
@@ -248,15 +244,15 @@ def start_game():
             screen.blit(message_turn, (0, 0))
         if turn == 2:
 
-            move=minimax(board,2,True)
-            col=move[0]
+            move = minimax(board, 3, True)
+            col = move[0]
             row = row_index(board, col)
             board[row][col] = 2
 
             draw_board(screen, board)
             if check_winner(board) == 2:
                 win_message = my_font.render('You LOSEEEEE', False, (0, 0, 0))
-                pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARESIZE))
+                pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
                 screen.blit(win_message, (0, 0))
                 pygame.display.update()
                 turn = 0
@@ -267,12 +263,12 @@ def start_game():
                 sys.exit()
             if event.type == pygame.MOUSEMOTION:
                 if turn == 1:
-                    col = int(event.pos[0] / SQUARESIZE)
+                    col = int(event.pos[0] / SQUARE_SIZE)
                     if col != actual_real:
                         actual_real = col
-                        pos_x = (int(event.pos[0] / SQUARESIZE) * SQUARESIZE + int(SQUARESIZE / 2))
-                        pos_y = int(SQUARESIZE * 3 / 4)
-                        pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARESIZE))
+                        pos_x = (int(event.pos[0] / SQUARE_SIZE) * SQUARE_SIZE + int(SQUARE_SIZE / 2))
+                        pos_y = int(SQUARE_SIZE * 3 / 4)
+                        pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
                         screen.blit(message_turn, (0, 0))
                         print(pos_x, pos_y)
                         pygame.draw.circle(screen, RED, (pos_x, pos_y), RADIUS / 2)
@@ -285,7 +281,7 @@ def start_game():
                     draw_board(screen, board)
                     if check_winner(board) == 1:
                         win_message = my_font.render('You Win', False, (0, 0, 0))
-                        pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARESIZE))
+                        pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
                         screen.blit(win_message, (0, 0))
                         pygame.display.update()
                         turn = 0
@@ -293,5 +289,20 @@ def start_game():
                         turn = 2
 
 
-start_game()
+def game_initialize(rows, columns, opponent_type, dificulty, start):
+    global ROWS
+    ROWS = int(rows)
+    global COLUMNS
+    COLUMNS = int(columns)
 
+    global SQUARE_SIZE
+    global RADIUS
+    if ROWS >= 7:
+        SQUARE_SIZE = 80
+        RADIUS = int(SQUARE_SIZE / 2) - 10
+    global HEIGHT
+    HEIGHT = ROWS * SQUARE_SIZE + 100
+    global WIDTH
+    WIDTH = COLUMNS * SQUARE_SIZE
+    if opponent_type == 'AI':
+        start_game()
