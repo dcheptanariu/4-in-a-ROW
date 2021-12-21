@@ -6,8 +6,10 @@ import pygame
 import sys
 import math
 
-ROWS = 5
+ROWS = 6
 COLUMNS = 8
+AI_PIECE = 2
+PLAYER_PIECE = 1
 
 
 def initialize_board(rows, columns):
@@ -78,6 +80,7 @@ def check_winner(board):
                     winner = 0
             if winner != 0:
                 return int(winner)
+    return -1
 
 
 SQUARESIZE = 100
@@ -114,17 +117,118 @@ pygame.init()
 size = (WIDTH, HEIGHT)
 screen = pygame.display.set_mode(size)
 
-
 game_over = False
 turn = 1
 
 
 def get_random_move(board):
     while 1:
-        col = random.randint(0, COLUMNS-1)
+        col = random.randint(0, COLUMNS - 1)
         if valid_column(board, col):
             return col
     return 0
+
+
+def get_valid_columns(board):
+    valid_columns = []
+    for i in range(board.shape[1]):
+        if board[0][i] == 0:
+            valid_columns.append(i)
+    return valid_columns
+
+
+def score_seq(seq):
+    if np.count_nonzero(seq == AI_PIECE) == 4:
+        return 100
+    if np.count_nonzero(seq == PLAYER_PIECE) == 4:
+        return -100
+    if np.count_nonzero(seq == AI_PIECE) == 3 and np.count_nonzero(seq == 0) == 1:
+        return 10
+    if np.count_nonzero(seq == PLAYER_PIECE) == 3 and np.count_nonzero(seq == 0) == 1:
+        return -10
+    if np.count_nonzero(seq == AI_PIECE) == 2 and np.count_nonzero(seq == 0) == 2:
+        return 5
+    if np.count_nonzero(seq == PLAYER_PIECE) == 2 and np.count_nonzero(seq == 0) == 2:
+        return -5
+    return 0
+
+
+def evaluate_board(board):
+    score = 0
+    for row in range(0, ROWS):
+        for column in range(0, COLUMNS - 3):
+            seq = board[row][column:column + 4]
+            score += score_seq(seq)
+
+    # check verticaly for 4 in a row
+    for row in range(0, ROWS - 3):
+
+        for column in range(0, COLUMNS):
+
+            seq = []
+            for i in range(0, 4):
+                seq.append(board[row + i][column])
+            score += score_seq(seq)
+
+    for row in range(0, ROWS - 3):
+        for column in range(0, COLUMNS - 3):
+            seq = []
+            for i in range(0, 4):
+                seq.append(board[row + i][column + i])
+            score += score_seq(seq)
+
+    for row in range(0, ROWS - 3):
+        for column in range(3, COLUMNS):
+
+            seq = []
+            for i in range(0, 4):
+                seq.append(board[row + i][column - i])
+            score += score_seq(seq)
+    return score
+
+
+def minimax(board, depth, maximing: bool):
+    winner = check_winner(board)
+    if winner == AI_PIECE:
+        return None, 100
+    if winner == PLAYER_PIECE:
+        return None, -100
+    if depth == 0 :
+        return None,evaluate_board(board)
+
+    if maximing:
+        score = -500
+        valid_columns = get_valid_columns(board)
+        best_column = random.choice(valid_columns)
+        if valid_columns == 0:
+            return 0
+        for col in valid_columns:
+            row = row_index(board, col)
+            board_modify = board.copy()
+            board_modify[row][col] = AI_PIECE
+            score_move = minimax(board_modify, depth - 1, not maximing)[1]
+
+            if score_move > score:
+                score = score_move
+                best_column = col
+
+        return best_column, score
+
+    else:
+        score = 500
+        valid_columns = get_valid_columns(board)
+        best_column = random.choice(valid_columns)
+        if valid_columns == 0:
+            return 0
+        for col in valid_columns:
+            row = row_index(board, col)
+            board_modify = board.copy()
+            board_modify[row][col] = PLAYER_PIECE
+            score_move = minimax(board_modify, depth - 1, not maximing)[1]
+            if score_move < score:
+                score = score_move
+                best_column = col
+        return best_column, score
 
 
 def start_game():
@@ -143,10 +247,12 @@ def start_game():
         if turn == 1:
             screen.blit(message_turn, (0, 0))
         if turn == 2:
-            col=get_random_move(board)
+
+            move=minimax(board,2,True)
+            col=move[0]
             row = row_index(board, col)
             board[row][col] = 2
-            print(board)
+
             draw_board(screen, board)
             if check_winner(board) == 2:
                 win_message = my_font.render('You LOSEEEEE', False, (0, 0, 0))
@@ -178,13 +284,14 @@ def start_game():
                     board[row][col] = 1
                     draw_board(screen, board)
                     if check_winner(board) == 1:
-                        win_message=my_font.render('You Win', False, (0, 0, 0))
+                        win_message = my_font.render('You Win', False, (0, 0, 0))
                         pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARESIZE))
                         screen.blit(win_message, (0, 0))
                         pygame.display.update()
-                        turn=0
+                        turn = 0
                     else:
                         turn = 2
 
 
 start_game()
+
