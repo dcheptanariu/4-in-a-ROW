@@ -1,15 +1,25 @@
 import random
-import time
+import sys
 
 import numpy as np
 import pygame
-import sys
-import math
 
 ROWS = 6
 COLUMNS = 8
 AI_PIECE = 2
 PLAYER_PIECE = 1
+DIFFICULTY = 'Easy'
+FIRST_TURN = 'AI'
+OPPONENT_TYPE = 'AI'
+
+HEIGHT = 0
+WIDTH = 0
+
+BLUE = (0, 204, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+WHITE = (255, 255, 255)
 
 
 def initialize_board(rows, columns):
@@ -43,7 +53,6 @@ def row_index(board, column):
 
 
 def check_winner(board):
-    winner = 0
     # check for horizontall 4 in a  row
     for row in range(0, ROWS):
         for column in range(0, COLUMNS - 3):
@@ -83,17 +92,6 @@ def check_winner(board):
     return -1
 
 
-SQUARE_SIZE = 100
-BLUE = (0, 204, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
-WHITE = (255, 255, 255)
-HEIGHT = ROWS * SQUARE_SIZE + 100
-WIDTH = COLUMNS * SQUARE_SIZE
-RADIUS = int(SQUARE_SIZE / 2) - 10
-
-
 def draw_board(screen, board):
     screen.fill(BLUE)
 
@@ -113,16 +111,11 @@ def draw_board(screen, board):
     pygame.display.update()
 
 
-game_over = False
-turn = 1
-
-
 def get_random_move(board):
     while 1:
         col = random.randint(0, COLUMNS - 1)
         if valid_column(board, col):
             return col
-    return 0
 
 
 def get_valid_columns(board):
@@ -227,7 +220,36 @@ def minimax(board, depth, maximing: bool):
         return best_column, score
 
 
-def start_game():
+def draw_end_buttons(screen, message):
+    pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
+    pygame.draw.rect(screen, WHITE, (10, 10, 100, 40))
+    my_font = pygame.font.SysFont('Comic Sans MS', 30)
+    message_back = my_font.render('BACK', False, (0, 0, 0))
+    screen.blit(message_back, (12, 10))
+    pygame.draw.rect(screen, WHITE, (WIDTH - 150, 10, WIDTH - 10, 40))
+    my_font = pygame.font.SysFont('Comic Sans MS', 30)
+    message_restart = my_font.render('RESTART', False, (0, 0, 0))
+    screen.blit(message_restart, (WIDTH - 145, 10))
+
+    screen.blit(message, (WIDTH / 3, 0))
+    pygame.display.update()
+    while True:
+        for ev in pygame.event.get():
+            if ev.type == pygame.QUIT:
+                pygame.quit()
+
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if 10 <= mouse_pos[0] <= 100 and 10 <= mouse_pos[1] <= 40:
+                    pygame.quit()
+                    return
+                if WIDTH - 150 <= mouse_pos[0] <= WIDTH and 10 < mouse_pos[1] <= 40:
+                    pygame.quit()
+                    game_initialize(ROWS, COLUMNS, OPPONENT_TYPE, DIFFICULTY, FIRST_TURN)
+                    return
+
+
+def start_game_human(turn):
     board = initialize_board(ROWS, COLUMNS)
     pygame.init()
     size = (WIDTH, HEIGHT)
@@ -235,7 +257,62 @@ def start_game():
 
     draw_board(screen, board)
     game_over = False
-    turn = 1
+    actual_real = -1
+    my_font = pygame.font.SysFont('Comic Sans MS', 30)
+    turn_player1 = my_font.render('Player 1 Turn', False, (0, 0, 0))
+    turn_player2 = my_font.render('Player 2 Turn', False, (0, 0, 0))
+    while not game_over:
+        if turn == 1:
+            screen.blit(turn_player1, (0, 0))
+        if turn == 2:
+            screen.blit(turn_player2, (0, 0))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEMOTION:
+
+                col = int(event.pos[0] / SQUARE_SIZE)
+                if col != actual_real:
+                    actual_real = col
+                    pos_x = (int(event.pos[0] / SQUARE_SIZE) * SQUARE_SIZE + int(SQUARE_SIZE / 2))
+                    pos_y = int(SQUARE_SIZE * 3 / 4)
+                    pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
+                    if turn == 1:
+                        screen.blit(turn_player1, (0, 0))
+                        pygame.draw.circle(screen, RED, (pos_x, pos_y), RADIUS / 2)
+                    else:
+                        screen.blit(turn_player2, (0, 0))
+                        pygame.draw.circle(screen, YELLOW, (pos_x, pos_y), RADIUS / 2)
+                    pygame.display.update()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+
+                col = actual_real
+                row = row_index(board, col)
+                board[row][col] = turn
+                draw_board(screen, board)
+                if check_winner(board) == turn:
+                    if turn == 1:
+                        win_message = my_font.render('Player 1 Win', False, (0, 0, 0))
+                    else:
+                        win_message = my_font.render('Player 2 Win', False, (0, 0, 0))
+                    game_over = True
+                    draw_end_buttons(screen, win_message)
+                    break
+                else:
+                    if turn == 1:
+                        turn = 2
+                    else:
+                        turn = 1
+
+
+def start_game_easy(turn):
+    board = initialize_board(ROWS, COLUMNS)
+    pygame.init()
+    size = (WIDTH, HEIGHT)
+    screen = pygame.display.set_mode(size)
+
+    draw_board(screen, board)
+    game_over = False
     actual_real = -1
     my_font = pygame.font.SysFont('Comic Sans MS', 30)
     message_turn = my_font.render('Your Turn', False, (0, 0, 0))
@@ -243,19 +320,15 @@ def start_game():
         if turn == 1:
             screen.blit(message_turn, (0, 0))
         if turn == 2:
-
-            move = minimax(board, 3, True)
-            col = move[0]
-            row = row_index(board, col)
-            board[row][col] = 2
-
+            move = get_random_move(board)
+            row = row_index(board, move)
+            board[row][move] = 2
             draw_board(screen, board)
             if check_winner(board) == 2:
                 win_message = my_font.render('You LOSEEEEE', False, (0, 0, 0))
-                pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
-                screen.blit(win_message, (0, 0))
-                pygame.display.update()
-                turn = 0
+                game_over = True
+                draw_end_buttons(screen, win_message)
+                break
             else:
                 turn = 1
         for event in pygame.event.get():
@@ -274,35 +347,172 @@ def start_game():
                         pygame.draw.circle(screen, RED, (pos_x, pos_y), RADIUS / 2)
                         pygame.display.update()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if (turn == 1):
+                if turn == 1:
                     col = actual_real
                     row = row_index(board, col)
                     board[row][col] = 1
                     draw_board(screen, board)
                     if check_winner(board) == 1:
                         win_message = my_font.render('You Win', False, (0, 0, 0))
-                        pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
-                        screen.blit(win_message, (0, 0))
-                        pygame.display.update()
-                        turn = 0
+                        game_over = True
+                        draw_end_buttons(screen, win_message)
+                        break
                     else:
                         turn = 2
 
 
-def game_initialize(rows, columns, opponent_type, dificulty, start):
+def start_game_medium(turn):
+    board = initialize_board(ROWS, COLUMNS)
+    pygame.init()
+    size = (WIDTH, HEIGHT)
+    screen = pygame.display.set_mode(size)
+
+    draw_board(screen, board)
+    game_over = False
+    actual_real = -1
+    my_font = pygame.font.SysFont('Comic Sans MS', 30)
+    message_turn = my_font.render('Your Turn', False, (0, 0, 0))
+    while not game_over:
+        if turn == 1:
+            screen.blit(message_turn, (0, 0))
+        if turn == 2:
+            move = minimax(board, 1, True)
+            col = move[0]
+            row = row_index(board, col)
+            board[row][col] = 2
+            draw_board(screen, board)
+            if check_winner(board) == 2:
+                win_message = my_font.render('You LOSEEEEE', False, (0, 0, 0))
+                game_over = True
+                draw_end_buttons(screen, win_message)
+                break
+            else:
+                turn = 1
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEMOTION:
+                if turn == 1:
+                    col = int(event.pos[0] / SQUARE_SIZE)
+                    if col != actual_real:
+                        actual_real = col
+                        pos_x = (int(event.pos[0] / SQUARE_SIZE) * SQUARE_SIZE + int(SQUARE_SIZE / 2))
+                        pos_y = int(SQUARE_SIZE * 3 / 4)
+                        pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
+                        screen.blit(message_turn, (0, 0))
+                        print(pos_x, pos_y)
+                        pygame.draw.circle(screen, RED, (pos_x, pos_y), RADIUS / 2)
+                        pygame.display.update()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if turn == 1:
+                    col = actual_real
+                    row = row_index(board, col)
+                    board[row][col] = 1
+                    draw_board(screen, board)
+                    if check_winner(board) == 1:
+                        win_message = my_font.render('You Win', False, (0, 0, 0))
+                        game_over = True
+                        draw_end_buttons(screen, win_message)
+                        break
+                    else:
+                        turn = 2
+
+
+def start_game_hard(turn):
+    board = initialize_board(ROWS, COLUMNS)
+    pygame.init()
+    size = (WIDTH, HEIGHT)
+    screen = pygame.display.set_mode(size)
+
+    draw_board(screen, board)
+    game_over = False
+    actual_real = -1
+    my_font = pygame.font.SysFont('Comic Sans MS', 30)
+    message_turn = my_font.render('Your Turn', False, (0, 0, 0))
+    while not game_over:
+        if turn == 1:
+            screen.blit(message_turn, (0, 0))
+        if turn == 2:
+            move = minimax(board, 3, True)
+            col = move[0]
+            row = row_index(board, col)
+            board[row][col] = 2
+            draw_board(screen, board)
+            if check_winner(board) == 2:
+                win_message = my_font.render('You LOSEEEEE', False, (0, 0, 0))
+                game_over = True
+                draw_end_buttons(screen, win_message)
+                break
+            else:
+                turn = 1
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.MOUSEMOTION:
+                if turn == 1:
+                    col = int(event.pos[0] / SQUARE_SIZE)
+                    if col != actual_real:
+                        actual_real = col
+                        pos_x = (int(event.pos[0] / SQUARE_SIZE) * SQUARE_SIZE + int(SQUARE_SIZE / 2))
+                        pos_y = int(SQUARE_SIZE * 3 / 4)
+                        pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
+                        screen.blit(message_turn, (0, 0))
+                        print(pos_x, pos_y)
+                        pygame.draw.circle(screen, RED, (pos_x, pos_y), RADIUS / 2)
+                        pygame.display.update()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if turn == 1:
+                    col = actual_real
+                    row = row_index(board, col)
+                    board[row][col] = 1
+                    draw_board(screen, board)
+                    if check_winner(board) == 1:
+                        win_message = my_font.render('You Win', False, (0, 0, 0))
+                        game_over = True
+                        draw_end_buttons(screen, win_message)
+                        break
+                    else:
+                        turn = 2
+
+
+def game_initialize(rows, columns, opponent_type, difficulty, start):
     global ROWS
     ROWS = int(rows)
     global COLUMNS
     COLUMNS = int(columns)
-
+    global OPPONENT_TYPE
+    OPPONENT_TYPE = opponent_type
+    global DIFFICULTY
+    DIFFICULTY = difficulty
+    global FIRST_TURN
+    FIRST_TURN = start
     global SQUARE_SIZE
     global RADIUS
     if ROWS >= 7:
         SQUARE_SIZE = 80
+        RADIUS = int(SQUARE_SIZE / 2) - 10
+    else:
+        SQUARE_SIZE = 100
         RADIUS = int(SQUARE_SIZE / 2) - 10
     global HEIGHT
     HEIGHT = ROWS * SQUARE_SIZE + 100
     global WIDTH
     WIDTH = COLUMNS * SQUARE_SIZE
     if opponent_type == 'AI':
-        start_game()
+        if difficulty == 'Easy':
+            if start == 'AI':
+                start_game_easy(2)
+            else:
+                start_game_easy(1)
+        elif difficulty == 'Medium':
+            if start == 'AI':
+                start_game_medium(2)
+            else:
+                start_game_medium(1)
+        elif difficulty == 'Hard':
+            if start == 'AI':
+                start_game_hard(2)
+            else:
+                start_game_hard(1)
+    else:
+        start_game_human(1)
