@@ -4,6 +4,17 @@ from tkinter import ttk
 
 
 def start_pressed(root, rows, cols, opp, diff, start):
+    """
+    Function which is called when the start button is pressed.
+
+    :param root: Represent window of the menu.
+    :param rows: Represent number of rows selected in menu.
+    :param cols: Represent number of columns selected in menu.
+    :param opp: Represent the type of opponent selected in menu.
+    :param diff: Represent difficulty of the AI .
+    :param start: Represent which player starts the game .
+    :return:
+    """
     if opp.get() == 'AI':
         root.withdraw()
         game.game_initialize(rows=rows.get(), columns=cols.get(), opponent_type=opp.get(), difficulty=diff.get(),
@@ -29,6 +40,12 @@ def selected_opp(event, opp_combo, difficulty_combo, start_combo, start_label, d
 
 
 def initialize_menu():
+    """
+    This function initialize a menu where the player can choose the number of rows, of columns , difficulty ,
+    who starts and the type of the opponent.
+
+    :return: None
+    """
     root = tk.Tk()
     root.title('4 in a ROW')
     root.geometry('800x600')

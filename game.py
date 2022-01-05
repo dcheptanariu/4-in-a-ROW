@@ -24,29 +24,47 @@ WHITE = (255, 255, 255)
 
 
 def initialize_board(rows, columns):
+    """
+    Initialize board function\n
+
+    :param rows:Number of rows of the board
+    :param columns:
+    Number of columns of the board
+    :return:
+    A matrix with rows lines and columns columns full with zeros.
+    """
     return np.zeros((rows, columns))
 
 
 def valid_column(board, column):
+    """
+    :param board:represent matrix of the game
+    :param column:the column which you want to see if it's valid
+    :return: true if the column has empty positions , false if not
+    """
     if board[0][column] == 0:
         return True
     return False
 
 
 def exist_move(board):
+    """
+    :param board: matrix of game
+    :return: true if exist at least one column with at least one position empty, false if doesn't exist
+    """
     for i in range(COLUMNS):
         if valid_column(board, i):
             return True
     return False
 
 
-def set_piece(board, column, color):
-    row = row_index(board, column)
-    if row >= 0:
-        board[row][column] = color
-
-
 def row_index(board, column):
+    """
+
+    :param board:  matrix of the game
+    :param column: index of a column in the matrix
+    :return: true if in matrix , column given by parameter have at least one position empty, false if not
+    """
     for i in reversed(range(ROWS)):
         if board[i][column] == 0:
             return i
@@ -54,6 +72,13 @@ def row_index(board, column):
 
 
 def check_winner(board):
+    """
+    Function to determine if exists a winner of game.
+
+    :param board: represent the matrix of the game
+    :return: return the index of player who win, meaning that have 4 in a row with the same color , 0 if a winner
+            doesn't exist
+    """
     # check for horizontal 4 in a  row
     for row in range(0, ROWS):
         for column in range(0, COLUMNS - 3):
@@ -94,6 +119,11 @@ def check_winner(board):
 
 
 def draw_board(screen, board):
+    """
+    :param screen: window of pygame where to draw
+    :param board: matrix of the game
+    :return: none
+    """
     screen.fill(BLUE)
 
     for i in range(0, ROWS):
@@ -113,6 +143,10 @@ def draw_board(screen, board):
 
 
 def get_random_move(board):
+    """
+    :param board: matrix of the game
+    :return: a random column represent a move of the game
+    """
     while 1:
         col = random.randint(0, COLUMNS - 1)
         if valid_column(board, col):
@@ -120,6 +154,12 @@ def get_random_move(board):
 
 
 def get_valid_columns(board):
+    """
+    Function for calculate the list of the valid columns in game
+
+    :param board: matrix of the game
+    :return: list of valid columns where player can move
+    """
     valid_columns = []
     for i in range(board.shape[1]):
         if board[0][i] == 0:
@@ -128,6 +168,10 @@ def get_valid_columns(board):
 
 
 def score_seq(seq):
+    """
+    :param seq: list of 4 integers represent a connected 4 position in game
+    :return: score of sequence , determined by checking the number of the same piece of the sequence
+    """
     if np.count_nonzero(seq == AI_PIECE) == 4:
         return 100
     if np.count_nonzero(seq == PLAYER_PIECE) == 4:
@@ -144,6 +188,10 @@ def score_seq(seq):
 
 
 def evaluate_board(board):
+    """
+    :param board: Represent the matrix of game
+    :return: Score of the board , representing the combinations of connected 4
+    """
     score = 0
     for row in range(0, ROWS):
         for column in range(0, COLUMNS - 3):
@@ -152,9 +200,7 @@ def evaluate_board(board):
 
     # check vertically for 4 in a row
     for row in range(0, ROWS - 3):
-
         for column in range(0, COLUMNS):
-
             seq = []
             for i in range(0, 4):
                 seq.append(board[row + i][column])
@@ -178,6 +224,14 @@ def evaluate_board(board):
 
 
 def minimax(board, depth, maximing: bool):
+    """
+    Minimax algorithm to determine the move of the AI.
+
+    :param board:   Represent matrix of game
+    :param depth: Represent the depth where the algorithm to go.
+    :param maximing: Represent if the algorithm is maximize or minimize
+    :return: The best move which the AI can perform
+    """
     winner = check_winner(board)
     if winner == AI_PIECE:
         return None, 100
@@ -222,6 +276,13 @@ def minimax(board, depth, maximing: bool):
 
 
 def draw_end_buttons(screen, message):
+    """
+    Function which draw buttons for back and restart at the end of the game.
+
+    :param screen: Represent the window of pygame where to draw.
+    :param message: Represent the message of the end game , which can be Player win , Player lose , or Tie.
+    :return: None
+    """
     width_buttons = int(WIDTH / 5)
     height_button = int(width_buttons / 2)
     pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
@@ -256,6 +317,12 @@ def draw_end_buttons(screen, message):
 
 
 def start_game_human(turn):
+    """
+    Function which start the game between two human players.
+
+    :param turn: Represent who player starts.
+    :return: None
+    """
     board = initialize_board(ROWS, COLUMNS)
     pygame.init()
     size = (WIDTH, HEIGHT)
@@ -317,6 +384,12 @@ def start_game_human(turn):
 
 
 def start_game_easy(turn):
+    """
+    Function which start the game between a human players and AI, which level is easy.AI move random.
+
+    :param turn: Represent which player starts, 1 for human player to start,2 for the AI.
+    :return: None
+    """
     board = initialize_board(ROWS, COLUMNS)
     pygame.init()
     size = (WIDTH, HEIGHT)
@@ -377,6 +450,13 @@ def start_game_easy(turn):
 
 
 def start_game_medium(turn):
+    """
+        Function which start the game between a human players and AI, which level is medium.AI has a good move
+        calculated with minimax , and another which calculate the score of the board.
+
+        :param turn: Represent which player starts, 1 for human player to start,2 for the AI.
+        :return: None
+        """
     board = initialize_board(ROWS, COLUMNS)
     pygame.init()
     size = (WIDTH, HEIGHT)
@@ -445,6 +525,13 @@ def start_game_medium(turn):
 
 
 def start_game_hard(turn):
+    """
+     Function which start the game between a human players and AI, which level is HARD.AI move by using the minimax
+     algorithm only.
+
+    :param turn: Represent which player starts, 1 for human player to start,2 for the AI.
+    :return: None
+    """
     board = initialize_board(ROWS, COLUMNS)
     pygame.init()
     size = (WIDTH, HEIGHT)
@@ -507,6 +594,16 @@ def start_game_hard(turn):
 
 
 def game_initialize(rows, columns, opponent_type, difficulty, start):
+    """
+    Function which initialize the game parameters and starts it.
+
+    :param rows: Represent number of rows of the game.
+    :param columns: Represent number of columns of the game.
+    :param opponent_type: Represent the opponent type , AI or Human.
+    :param difficulty: Represent the difficulty if we play with the AI.
+    :param start: Represent which player starts , AI or Human.
+    :return: None
+    """
     global ROWS
     ROWS = int(rows)
     global COLUMNS
