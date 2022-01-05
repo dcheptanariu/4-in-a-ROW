@@ -76,10 +76,10 @@ def initialize_menu():
     start_combo.place(x=460, y=278)
     start_combo.state(['readonly'])
 
-    nr_rows_spinbox = tk.Spinbox(root, from_=4, to=10, width=5, font=("Comic Sans MS", 10), highlightbackground="white")
+    nr_rows_spinbox = tk.Spinbox(root, from_=4, to=12, width=5, font=("Comic Sans MS", 10), highlightbackground="white")
     nr_rows_spinbox.place(x=460, y=158)
 
-    nr_cols_spinbox = tk.Spinbox(root, from_=4, to=10, width=5, font=("Comic Sans MS", 10), highlightbackground="white")
+    nr_cols_spinbox = tk.Spinbox(root, from_=4, to=12, width=5, font=("Comic Sans MS", 10), highlightbackground="white")
     nr_cols_spinbox.place(x=460, y=188)
 
     start_button = tk.Button(root, text="Start", font=("Comic Sans MS", 20))

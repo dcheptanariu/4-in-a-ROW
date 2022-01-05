@@ -1,5 +1,4 @@
 import random
-import sys
 
 import numpy as np
 import pygame
@@ -55,7 +54,7 @@ def row_index(board, column):
 
 
 def check_winner(board):
-    # check for horizontall 4 in a  row
+    # check for horizontal 4 in a  row
     for row in range(0, ROWS):
         for column in range(0, COLUMNS - 3):
             winner = board[row][column]
@@ -64,7 +63,7 @@ def check_winner(board):
                     winner = 0
             if winner != 0:
                 return int(winner)
-    # check verticaly for 4 in a row
+    # check vertically for 4 in a row
     for row in range(0, ROWS - 3):
 
         for column in range(0, COLUMNS):
@@ -151,7 +150,7 @@ def evaluate_board(board):
             seq = board[row][column:column + 4]
             score += score_seq(seq)
 
-    # check verticaly for 4 in a row
+    # check vertically for 4 in a row
     for row in range(0, ROWS - 3):
 
         for column in range(0, COLUMNS):
@@ -325,16 +324,17 @@ def start_game_easy(turn):
 
     draw_board(screen, board)
     game_over = False
-    actual_real = -1
+    actual_col_hovered = -1
     my_font = pygame.font.SysFont('Comic Sans MS', 30)
     message_turn = my_font.render('Your Turn', False, (0, 0, 0))
+    middle_rect = message_turn.get_rect(center=(WIDTH / 2, 10 + int(message_turn.get_height() / 2)))
     while not game_over:
         if not exist_move(board):
             tie_message = my_font.render('Tie', False, (0, 0, 0))
             draw_end_buttons(screen, tie_message)
             break
         if turn == 1:
-            screen.blit(message_turn, (0, 0))
+            screen.blit(message_turn, middle_rect)
         if turn == 2:
             move = get_random_move(board)
             row = row_index(board, move)
@@ -353,18 +353,17 @@ def start_game_easy(turn):
             if event.type == pygame.MOUSEMOTION:
                 if turn == 1:
                     col = int(event.pos[0] / SQUARE_SIZE)
-                    if col != actual_real:
-                        actual_real = col
+                    if col != actual_col_hovered:
+                        actual_col_hovered = col
                         pos_x = (int(event.pos[0] / SQUARE_SIZE) * SQUARE_SIZE + int(SQUARE_SIZE / 2))
                         pos_y = int(SQUARE_SIZE * 3 / 4)
                         pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
-                        screen.blit(message_turn, (0, 0))
-                        print(pos_x, pos_y)
+                        screen.blit(message_turn, middle_rect)
                         pygame.draw.circle(screen, RED, (pos_x, pos_y), RADIUS / 2)
                         pygame.display.update()
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and valid_column(board, actual_col_hovered):
                 if turn == 1:
-                    col = actual_real
+                    col = actual_col_hovered
                     row = row_index(board, col)
                     board[row][col] = 1
                     draw_board(screen, board)
@@ -385,25 +384,32 @@ def start_game_medium(turn):
 
     draw_board(screen, board)
     game_over = False
-    actual_real = -1
+    actual_col_hovered = -1
     my_font = pygame.font.SysFont('Comic Sans MS', 30)
     message_turn = my_font.render('Your Turn', False, (0, 0, 0))
+    middle_rect = message_turn.get_rect(center=(WIDTH / 2, 10 + int(message_turn.get_height() / 2)))
+    move_type = 1  # 1 means weak move , 2 means strong move
     while not game_over:
         if not exist_move(board):
             tie_message = my_font.render('Tie', False, (0, 0, 0))
             draw_end_buttons(screen, tie_message)
             break
         if turn == 1:
-            screen.blit(message_turn, (0, 0))
+            screen.blit(message_turn, middle_rect)
         if turn == 2:
-            move = minimax(board, 1, True)
+            if move_type == 1:
+                move = minimax(board, 1, True)
+                move_type = 2
+            else:
+                move = minimax(board, 3, True)
+                move_type = 1
             col = move[0]
             row = row_index(board, col)
             board[row][col] = 2
             draw_board(screen, board)
             if check_winner(board) == 2:
-                win_message = my_font.render('You LOSEEEEE', False, (0, 0, 0))
-                game_over = True
+                win_message = my_font.render('You LOSE', False, (0, 0, 0))
+
                 draw_end_buttons(screen, win_message)
                 break
             else:
@@ -415,18 +421,17 @@ def start_game_medium(turn):
             if event.type == pygame.MOUSEMOTION:
                 if turn == 1:
                     col = int(event.pos[0] / SQUARE_SIZE)
-                    if col != actual_real:
-                        actual_real = col
+                    if col != actual_col_hovered:
+                        actual_col_hovered = col
                         pos_x = (int(event.pos[0] / SQUARE_SIZE) * SQUARE_SIZE + int(SQUARE_SIZE / 2))
                         pos_y = int(SQUARE_SIZE * 3 / 4)
                         pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
-                        screen.blit(message_turn, (0, 0))
-                        print(pos_x, pos_y)
+                        screen.blit(message_turn, middle_rect)
                         pygame.draw.circle(screen, RED, (pos_x, pos_y), RADIUS / 2)
                         pygame.display.update()
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and valid_column(board, actual_col_hovered):
                 if turn == 1:
-                    col = actual_real
+                    col = actual_col_hovered
                     row = row_index(board, col)
                     board[row][col] = 1
                     draw_board(screen, board)
@@ -447,16 +452,17 @@ def start_game_hard(turn):
 
     draw_board(screen, board)
     game_over = False
-    actual_real = -1
+    actual_col_hovered = -1
     my_font = pygame.font.SysFont('Comic Sans MS', int(WIDTH / 25))
     message_turn = my_font.render('Your Turn', False, (0, 0, 0))
+    middle_rect = message_turn.get_rect(center=(WIDTH / 2, 10 + int(message_turn.get_height() / 2)))
     while not game_over:
         if not exist_move(board):
             tie_message = my_font.render('Tie', False, (0, 0, 0))
             draw_end_buttons(screen, tie_message)
             break
         if turn == 1:
-            screen.blit(message_turn, (0, 0))
+            screen.blit(message_turn, middle_rect)
             pygame.display.update()
         if turn == 2:
             move = minimax(board, 3, True)
@@ -465,8 +471,7 @@ def start_game_hard(turn):
             board[row][col] = 2
             draw_board(screen, board)
             if check_winner(board) == 2:
-                win_message = my_font.render('You LOSEEEEE', False, (0, 0, 0))
-                game_over = True
+                win_message = my_font.render('You LOSE', False, (0, 0, 0))
                 draw_end_buttons(screen, win_message)
                 break
             else:
@@ -478,18 +483,17 @@ def start_game_hard(turn):
             if event.type == pygame.MOUSEMOTION:
                 if turn == 1:
                     col = int(event.pos[0] / SQUARE_SIZE)
-                    if col != actual_real:
-                        actual_real = col
+                    if col != actual_col_hovered:
+                        actual_col_hovered = col
                         pos_x = (int(event.pos[0] / SQUARE_SIZE) * SQUARE_SIZE + int(SQUARE_SIZE / 2))
                         pos_y = int(SQUARE_SIZE * 3 / 4)
                         pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
-                        screen.blit(message_turn, (0, 0))
-                        print(pos_x, pos_y)
+                        screen.blit(message_turn, middle_rect)
                         pygame.draw.circle(screen, RED, (pos_x, pos_y), RADIUS / 2)
                         pygame.display.update()
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and valid_column(board, actual_col_hovered):
                 if turn == 1:
-                    col = actual_real
+                    col = actual_col_hovered
                     row = row_index(board, col)
                     board[row][col] = 1
                     draw_board(screen, board)
