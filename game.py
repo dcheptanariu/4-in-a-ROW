@@ -34,6 +34,13 @@ def valid_column(board, column):
     return False
 
 
+def exist_move(board):
+    for i in range(COLUMNS):
+        if valid_column(board, i):
+            return True
+    return False
+
+
 def set_piece(board, column, color):
     row = row_index(board, column)
     if row >= 0:
@@ -240,10 +247,10 @@ def draw_end_buttons(screen, message):
 
             if ev.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
-                if 10 <= mouse_pos[0] <= 100 and 10 <= mouse_pos[1] <= 40:
+                if 10 <= mouse_pos[0] <= width_buttons + 10 and 10 <= mouse_pos[1] <= height_button + 10:
                     pygame.quit()
                     return
-                if WIDTH - 150 <= mouse_pos[0] <= WIDTH and 10 < mouse_pos[1] <= 40:
+                if (WIDTH - width_buttons - 10) <= mouse_pos[0] <= WIDTH and 10 < mouse_pos[1] <= height_button + 10:
                     pygame.quit()
                     game_initialize(ROWS, COLUMNS, OPPONENT_TYPE, DIFFICULTY, FIRST_TURN)
                     return
@@ -257,36 +264,41 @@ def start_game_human(turn):
 
     draw_board(screen, board)
     game_over = False
-    actual_real = -1
+    actual_col_hovered = -1
     my_font = pygame.font.SysFont('Comic Sans MS', 30)
     turn_player1 = my_font.render('Player 1 Turn', False, (0, 0, 0))
     turn_player2 = my_font.render('Player 2 Turn', False, (0, 0, 0))
+    middle_rect = turn_player1.get_rect(center=(WIDTH / 2, 10 + int(turn_player1.get_height() / 2)))
     while not game_over:
+        if not exist_move(board):
+            tie_message = my_font.render('Tie', False, (0, 0, 0))
+            draw_end_buttons(screen, tie_message)
+            break
         if turn == 1:
-            screen.blit(turn_player1, (0, 0))
+            screen.blit(turn_player1, middle_rect)
         if turn == 2:
-            screen.blit(turn_player2, (0, 0))
+            screen.blit(turn_player2, middle_rect)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                pygame.quit()
+                return
             if event.type == pygame.MOUSEMOTION:
 
                 col = int(event.pos[0] / SQUARE_SIZE)
-                if col != actual_real:
-                    actual_real = col
+                if col != actual_col_hovered:
+                    actual_col_hovered = col
                     pos_x = (int(event.pos[0] / SQUARE_SIZE) * SQUARE_SIZE + int(SQUARE_SIZE / 2))
                     pos_y = int(SQUARE_SIZE * 3 / 4)
                     pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
                     if turn == 1:
-                        screen.blit(turn_player1, (0, 0))
+                        screen.blit(turn_player1, middle_rect)
                         pygame.draw.circle(screen, RED, (pos_x, pos_y), RADIUS / 2)
                     else:
-                        screen.blit(turn_player2, (0, 0))
+                        screen.blit(turn_player2, middle_rect)
                         pygame.draw.circle(screen, YELLOW, (pos_x, pos_y), RADIUS / 2)
                     pygame.display.update()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-
-                col = actual_real
+            if event.type == pygame.MOUSEBUTTONDOWN and valid_column(board, actual_col_hovered):
+                col = actual_col_hovered
                 row = row_index(board, col)
                 board[row][col] = turn
                 draw_board(screen, board)
@@ -317,6 +329,10 @@ def start_game_easy(turn):
     my_font = pygame.font.SysFont('Comic Sans MS', 30)
     message_turn = my_font.render('Your Turn', False, (0, 0, 0))
     while not game_over:
+        if not exist_move(board):
+            tie_message = my_font.render('Tie', False, (0, 0, 0))
+            draw_end_buttons(screen, tie_message)
+            break
         if turn == 1:
             screen.blit(message_turn, (0, 0))
         if turn == 2:
@@ -325,15 +341,15 @@ def start_game_easy(turn):
             board[row][move] = 2
             draw_board(screen, board)
             if check_winner(board) == 2:
-                win_message = my_font.render('You LOSEEEEE', False, (0, 0, 0))
-                game_over = True
+                win_message = my_font.render('You LOSE', False, (0, 0, 0))
                 draw_end_buttons(screen, win_message)
                 break
             else:
                 turn = 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                pygame.quit()
+                return
             if event.type == pygame.MOUSEMOTION:
                 if turn == 1:
                     col = int(event.pos[0] / SQUARE_SIZE)
@@ -373,6 +389,10 @@ def start_game_medium(turn):
     my_font = pygame.font.SysFont('Comic Sans MS', 30)
     message_turn = my_font.render('Your Turn', False, (0, 0, 0))
     while not game_over:
+        if not exist_move(board):
+            tie_message = my_font.render('Tie', False, (0, 0, 0))
+            draw_end_buttons(screen, tie_message)
+            break
         if turn == 1:
             screen.blit(message_turn, (0, 0))
         if turn == 2:
@@ -390,7 +410,8 @@ def start_game_medium(turn):
                 turn = 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                pygame.quit()
+                return
             if event.type == pygame.MOUSEMOTION:
                 if turn == 1:
                     col = int(event.pos[0] / SQUARE_SIZE)
@@ -430,6 +451,10 @@ def start_game_hard(turn):
     my_font = pygame.font.SysFont('Comic Sans MS', int(WIDTH / 25))
     message_turn = my_font.render('Your Turn', False, (0, 0, 0))
     while not game_over:
+        if not exist_move(board):
+            tie_message = my_font.render('Tie', False, (0, 0, 0))
+            draw_end_buttons(screen, tie_message)
+            break
         if turn == 1:
             screen.blit(message_turn, (0, 0))
             pygame.display.update()
@@ -448,7 +473,8 @@ def start_game_hard(turn):
                 turn = 1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                pygame.quit()
+                return
             if event.type == pygame.MOUSEMOTION:
                 if turn == 1:
                     col = int(event.pos[0] / SQUARE_SIZE)

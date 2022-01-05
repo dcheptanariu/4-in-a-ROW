@@ -24,8 +24,8 @@ def selected_opp(event, opp_combo, difficulty_combo, start_combo, start_label, d
     else:
         difficulty_combo.place(x=460, y=248)
         start_combo.place(x=460, y=278)
-        start_label.place(x=300, y=270)
-        difficulty_label.place(x=300, y=240)
+        start_label.place(x=300, y=240)
+        difficulty_label.place(x=300, y=270)
 
 
 def initialize_menu():
