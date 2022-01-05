@@ -14,6 +14,8 @@ OPPONENT_TYPE = 'AI'
 
 HEIGHT = 0
 WIDTH = 0
+SQUARE_SIZE = 0
+RADIUS = 0
 
 BLUE = (0, 204, 255)
 BLACK = (0, 0, 0)
@@ -24,13 +26,6 @@ WHITE = (255, 255, 255)
 
 def initialize_board(rows, columns):
     return np.zeros((rows, columns))
-
-
-def read_settings():
-    global ROWS
-    ROWS = int(input("Enter number of rows: "))
-    global COLUMNS
-    COLUMNS = int(input("Enter number of columns:"))
 
 
 def valid_column(board, column):
@@ -221,17 +216,22 @@ def minimax(board, depth, maximing: bool):
 
 
 def draw_end_buttons(screen, message):
+    width_buttons = int(WIDTH / 5)
+    height_button = int(width_buttons / 2)
     pygame.draw.rect(screen, BLUE, (0, 0, WIDTH, SQUARE_SIZE))
-    pygame.draw.rect(screen, WHITE, (10, 10, 100, 40))
-    my_font = pygame.font.SysFont('Comic Sans MS', 30)
+    pygame.draw.rect(screen, WHITE, (10, 10, width_buttons, height_button))
+    my_font = pygame.font.SysFont('Comic Sans MS', int(WIDTH / 30))
     message_back = my_font.render('BACK', False, (0, 0, 0))
-    screen.blit(message_back, (12, 10))
-    pygame.draw.rect(screen, WHITE, (WIDTH - 150, 10, WIDTH - 10, 40))
-    my_font = pygame.font.SysFont('Comic Sans MS', 30)
+    text_rect = message_back.get_rect(center=(5 + int(width_buttons / 2), 5 + int(height_button / 2)))
+    screen.blit(message_back, text_rect)
+    pygame.draw.rect(screen, WHITE, (WIDTH - width_buttons - 10, 10, WIDTH, height_button))
     message_restart = my_font.render('RESTART', False, (0, 0, 0))
-    screen.blit(message_restart, (WIDTH - 145, 10))
+    text_rect = message_restart.get_rect(center=(WIDTH - width_buttons / 2 - 5, int(height_button / 2) + 5))
+    screen.blit(message_restart, text_rect)
 
-    screen.blit(message, (WIDTH / 3, 0))
+    text_rect = message.get_rect(center=(WIDTH / 2, 10 + int(message.get_height() / 2)))
+
+    screen.blit(message, text_rect)
     pygame.display.update()
     while True:
         for ev in pygame.event.get():
@@ -427,11 +427,12 @@ def start_game_hard(turn):
     draw_board(screen, board)
     game_over = False
     actual_real = -1
-    my_font = pygame.font.SysFont('Comic Sans MS', 30)
+    my_font = pygame.font.SysFont('Comic Sans MS', int(WIDTH / 25))
     message_turn = my_font.render('Your Turn', False, (0, 0, 0))
     while not game_over:
         if turn == 1:
             screen.blit(message_turn, (0, 0))
+            pygame.display.update()
         if turn == 2:
             move = minimax(board, 3, True)
             col = move[0]
@@ -488,12 +489,15 @@ def game_initialize(rows, columns, opponent_type, difficulty, start):
     FIRST_TURN = start
     global SQUARE_SIZE
     global RADIUS
+    SQUARE_SIZE = 100
+    RADIUS = int(SQUARE_SIZE / 2) - 10
     if ROWS >= 7:
         SQUARE_SIZE = 80
         RADIUS = int(SQUARE_SIZE / 2) - 10
-    else:
-        SQUARE_SIZE = 100
+    if ROWS >= 10:
+        SQUARE_SIZE = 60
         RADIUS = int(SQUARE_SIZE / 2) - 10
+
     global HEIGHT
     HEIGHT = ROWS * SQUARE_SIZE + 100
     global WIDTH
